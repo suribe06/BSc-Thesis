@@ -83,3 +83,13 @@ print("Time Elapsed: {0}".format(t2 - t1))
 print(gs.best_score['rmse'])
 # combination of parameters that gave the best RMSE score
 print(gs.best_params['rmse'])
+
+#estimating a rating
+user_id = str(1)
+movie_id = str(1029)
+gs.predict(user_id, movie_id)
+
+#predict new rating
+user_id = str(1)
+movie_id = str(50)
+gs.predict(user_id, movie_id)
