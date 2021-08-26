@@ -84,9 +84,9 @@ def netinf_example_network():
     labels = {}
     for NI in G.Nodes():
         labels[NI.GetId()] = str(NI.GetId())
-    snap.DrawGViz(G, snap.gvlDot, "G.png", "Example Network Netinf", labels)
+    snap.DrawGViz(G, snap.gvlDot, "inferred_network_2.png", "Inferred Network 2 - Example Netinf", labels)
     nx.draw_circular(G2, with_labels=True, arrows=True)
-    plt.savefig("Directed_Graph.png", format="PNG")
+    plt.savefig("IN2.png", format="PNG")
     return
 
 #intro()
