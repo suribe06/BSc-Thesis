@@ -1,6 +1,6 @@
 import snap
 
-nodes = 10
+nodes = 4
 G = snap.GenFull(snap.PNEANet,nodes)
 
 # define int, float and str attributes on nodes
@@ -38,4 +38,3 @@ for NI in G.Nodes():
         eid = G.GetEId(nid, nid1)
         val = G.GetIntAttrDatE(eid, "EValInt")
         print("edge %d (%d,%d), EValInt %d" % (eid, nid, nid1, val))
-
