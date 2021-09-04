@@ -1,7 +1,10 @@
+from networkx.algorithms import bipartite
+import matplotlib.pyplot as plt
 from sys import stdin
 import networkx as nx
+import pandas as pd
 import snap
-import matplotlib.pyplot as plt
+
 
 def intro():
     # create a graph
@@ -55,10 +58,6 @@ def prueba1():
         labels[NI.GetId()] = str(NI.GetId())
     snap.DrawGViz(G1, snap.gvlDot, "G1.png", "G1", labels)
 
-def movielens_network():
-    N1 = snap.TNEANet.New() #directed network
-    #Usar TBPGraph para grafos bipartitos
-
 def netinf_example_network():
     G = snap.TNGraph.New()
     G2 = nx.DiGraph(directed=True)
@@ -89,7 +88,39 @@ def netinf_example_network():
     plt.savefig("IN2.png", format="PNG")
     return
 
+def change_user(x):
+    ans = "u{0}".format(int(x))
+    return ans
+
+def change_movie(x):
+    ans = "m{0}".format(int(x))
+    return ans
+
+def plot_bipartite(BG, df):
+    pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
+    pos.update({node:[1, i] for i,node in enumerate(df['item_id'])})
+    color_dict = {0:'b',1:'r'}
+    color_list = [color_dict[i[1]] for i in BG.nodes.data('bipartite')]
+    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3, "node_color":color_list}
+    nx.draw(BG, pos, **options)
+    plt.show()
+
+def movielens_network():
+    #N1 = snap.TNEANet.New() #directed network
+    #Usar TBPGraph para grafos bipartitos
+    df = pd.read_csv('prueba.csv', usecols=[0, 1, 2])
+    df['user_id'] = df['user_id'].apply(change_user)
+    df['item_id'] = df['item_id'].apply(change_movie)
+    BG = nx.Graph()
+    BG.add_nodes_from(df['user_id'], bipartite=0)
+    BG.add_nodes_from(df['item_id'], bipartite=1)
+    BG.add_weighted_edges_from([(row['user_id'], row['item_id'], row['rating']) for idx, row in df.iterrows()], weight='rating')
+    #plot_bipartite(BG, df)
+    #PG = bipartite.weighted_projected_graph(BG, [1]) #error en projeccion
+    return
+
 #intro()
 #prueba1()
 #movielens_network()
-netinf_example_network()
+#netinf_example_network()
+movielens_network()
