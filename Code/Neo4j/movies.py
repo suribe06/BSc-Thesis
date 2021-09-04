@@ -19,14 +19,14 @@ graph.run('''
 ''')
 
 def create_bipartite_graph(data):
-    user_nodes = list(map(lambda x: [x], set(data['userId'].tolist())))
-    movie_nodes = list(map(lambda x: [x], set(data['movieId'].tolist())))
+    user_nodes = list(map(lambda x: [x], set(data['user_id'].tolist())))
+    movie_nodes = list(map(lambda x: [x], set(data['item_id'].tolist())))
     create_nodes(graph.auto(), user_nodes, labels={'User'}, keys=["UserId"])
     create_nodes(graph.auto(), movie_nodes, labels={'Movie'}, keys=["MovieId"])
     edges = []
     for index, row in data.iterrows():
-        userID = int(row['userId'])
-        movieID = int(row['movieId'])
+        userID = int(row['user_id'])
+        movieID = int(row['item_id'])
         rating = row['rating']
         date = datetime.fromtimestamp(row['timestamp']).strftime("%m/%d/%Y, %H:%M:%S")
         #Atribute "new_rating" only for modelo3
@@ -34,7 +34,7 @@ def create_bipartite_graph(data):
         if rating >= 0.5 and rating <= 1.5: new_rating = "Bad"
         elif rating >= 2.0 and rating <= 3.5: new_rating = "Regular"
         elif rating >= 4.0 and rating <= 5.0: new_rating = "Good"
-        edges.append((userID, {"rating" : rating, "date": date, "qualification" : new_rating}, movieID))
+        edges.append((userID, {"rating" : float(rating), "date": date, "qualification" : new_rating}, movieID))
     create_relationships(graph.auto(), edges, "RATED_MOVIE", start_node_key=("User", "UserId"), end_node_key=("Movie", "MovieId"))
     return
 
@@ -93,13 +93,19 @@ def reset_graph():
     ''')
     return
 
-t1 = time()
-create_bipartite_graph(data)
-t2 = time()
-print("Execution Time {0}".format(t2 - t1))
-print("Number of nodes of type Movie: {0}".format(len(graph.nodes.match("Movie"))))
-print("Number of nodes of type User: {0}".format(len(graph.nodes.match("User"))))
-print("Number of relationships: {0}".format(len(graph.relationships)))
+def main():
+    t1 = time()
+    create_bipartite_graph(data)
+    t2 = time()
+    print("Execution Time {0}".format(t2 - t1))
+    print("Number of nodes of type Movie: {0}".format(len(graph.nodes.match("Movie"))))
+    print("Number of nodes of type User: {0}".format(len(graph.nodes.match("User"))))
+    print("Number of relationships: {0}".format(len(graph.relationships)))
+    return
+
+#main()
+#modelo1()
+reset_graph()
 
 """
 MATCH (u1:User)-[:CONNECTED]->(u2:User)
