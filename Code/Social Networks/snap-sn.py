@@ -88,14 +88,6 @@ def netinf_example_network():
     plt.savefig("IN2.png", format="PNG")
     return
 
-def change_user(x):
-    ans = "u{0}".format(int(x))
-    return ans
-
-def change_movie(x):
-    ans = "m{0}".format(int(x))
-    return ans
-
 def plot_bipartite(BG, df):
     pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
     pos.update({node:[1, i] for i,node in enumerate(df['item_id'])})
@@ -105,22 +97,29 @@ def plot_bipartite(BG, df):
     nx.draw(BG, pos, **options)
     plt.show()
 
+def plot_projection(G):
+    pos = nx.spring_layout(G)
+    nx.draw_networkx(G,pos)
+    labels = nx.get_edge_attributes(G,'weight')
+    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
+    plt.axis('off')
+    plt.show()
+
 def movielens_network():
     #N1 = snap.TNEANet.New() #directed network
     #Usar TBPGraph para grafos bipartitos
     df = pd.read_csv('prueba.csv', usecols=[0, 1, 2])
-    df['user_id'] = df['user_id'].apply(change_user)
-    df['item_id'] = df['item_id'].apply(change_movie)
+    df['user_id'] = df['user_id'].apply(lambda x: int(2*x))
+    df['item_id'] = df['item_id'].apply(lambda x: int(2*x+1))
     BG = nx.Graph()
     BG.add_nodes_from(df['user_id'], bipartite=0)
     BG.add_nodes_from(df['item_id'], bipartite=1)
     BG.add_weighted_edges_from([(row['user_id'], row['item_id'], row['rating']) for idx, row in df.iterrows()], weight='rating')
     #plot_bipartite(BG, df)
-    #PG = bipartite.weighted_projected_graph(BG, [1]) #error en projeccion
+    user_nodes, movie_nodes = bipartite.sets(BG)
+    ProjGraph = bipartite.weighted_projected_graph(BG, user_nodes)
+    #plot_projection(ProjGraph)
     return
 
-#intro()
-#prueba1()
-#movielens_network()
 #netinf_example_network()
 movielens_network()
