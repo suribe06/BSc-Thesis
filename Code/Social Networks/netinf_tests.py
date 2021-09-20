@@ -1,8 +1,8 @@
 import os
 
-cascades = "example-cascades.txt"
-name_output = "example"
-edges = 100
+cascades = "movielens-cascades.txt"
+name_output = "movielens"
+edges = 200000
 alpha = 1 #default:1
 
 #Clean previous executions
