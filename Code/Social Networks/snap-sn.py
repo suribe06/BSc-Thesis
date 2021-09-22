@@ -32,7 +32,7 @@ def prueba1():
         labels[NI.GetId()] = str(NI.GetId())
     snap.DrawGViz(G1, snap.gvlDot, "G1.png", "G1", labels)
 
-def netinf_example_network():
+def netinf_results():
     G = snap.TNGraph.New()
     G2 = nx.DiGraph(directed=True)
     #lectura de nodos
@@ -52,16 +52,16 @@ def netinf_example_network():
         G2.add_edge(u, v)
         line = stdin.readline().strip()
     #Number of nodes and edges in G
-    print("G: Nodes %d, Edges %d" % (G.GetNodes(), G.GetEdges()))
+    print("G: Nodes={0}, Edges={1}".format(G.GetNodes(), G.GetEdges()))
+    print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
     #Plot graph
     labels = {}
     for NI in G.Nodes():
         labels[NI.GetId()] = str(NI.GetId())
-    #for x in G2.edges():
-        #print(x)
-    #snap.DrawGViz(G, snap.gvlDot, "inferred_network_1.png", "Inferred Network 1 - Example Netinf", labels)
-    #nx.draw_circular(G2, with_labels=True, arrows=True)
-    #plt.savefig("IN2.png", format="PNG")
+    snap.DrawGViz(G, snap.gvlDot, "inferred_network_movielens.png", "Inferred Network with Exponential Model and alpha=0.001", labels)
+    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
+    nx.draw(G2, **options)
+    plt.savefig("IN_MovieLens2.png", format="PNG")
     return
 
 def plot_bipartite(BG, df):
@@ -97,5 +97,5 @@ def movielens_network():
     plot_projection(ProjGraph)
     return
 
-#netinf_example_network()
-movielens_network()
+netinf_results()
+#movielens_network()
