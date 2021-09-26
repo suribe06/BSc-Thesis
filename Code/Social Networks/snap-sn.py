@@ -1,12 +1,64 @@
 from networkx.algorithms import bipartite
 import matplotlib.pyplot as plt
+from matplotlib import pylab
 from sys import stdin
 import networkx as nx
 import pandas as pd
 import snap
 
-def prueba1():
-    G1 = snap.LoadEdgeList(snap.TNGraph,"graph.txt",0,1, ',')
+def plot_bipartite(BG, df):
+    pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
+    pos.update({node:[1, i] for i,node in enumerate(df['item_id'])})
+    color_dict = {0:'b',1:'r'}
+    color_list = [color_dict[i[1]] for i in BG.nodes.data('bipartite')]
+    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3, "node_color":color_list}
+    nx.draw(BG, pos, **options)
+    plt.show()
+
+def plot_projection(G):
+    #pos = nx.spring_layout(G)
+    options = {"node_size":7, "with_labels":False, "arrows":False, "width":0.1}
+    nx.draw(G, **options)
+    #nx.draw_networkx(G,pos)
+    #labels = nx.get_edge_attributes(G,'weight')
+    #nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
+    plt.axis('off')
+    plt.savefig("Users Projected Graph.png", dpi=1000)
+
+def movielens_graph():
+    df = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
+    df['user_id'] = df['user_id'].apply(lambda x: int(2*x))
+    df['item_id'] = df['item_id'].apply(lambda x: int(2*x+1))
+    BG = nx.Graph()
+    BG.add_nodes_from(df['user_id'], bipartite=0)
+    BG.add_nodes_from(df['item_id'], bipartite=1)
+    BG.add_weighted_edges_from([(row['user_id'], row['item_id'], row['rating']) for idx, row in df.iterrows()], weight='rating')
+    #plot_bipartite(BG, df)
+    user_nodes, movie_nodes = bipartite.sets(BG)
+    ProjGraph = bipartite.weighted_projected_graph(BG, user_nodes)
+    print(ProjGraph.number_of_nodes())
+    print("Users Projected Graph: Edges={0}".format(ProjGraph.number_of_edges()))
+    #degrees = [ProjGraph.degree(n) for n in ProjGraph.nodes()]
+    #plt.hist(degrees)
+    #plt.show()
+    degree_freq = nx.degree_histogram(ProjGraph)
+    degrees = range(len(degree_freq))
+    plt.figure(figsize=(12, 8))
+    plt.plot(degrees, degree_freq,'co-', label="Degree Distribution")
+    plt.xlabel('Degree')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.grid()
+    plt.savefig("UserProjectionDegreeDistribution.png")
+    #for x in ProjGraph.edges():
+        #print("{0} {1}".format(int(x[0]), int(x[1])))
+    #plot_projection(ProjGraph)
+    return
+
+def convert_networkx_to_snap():
+    return
+
+def topological_measurements(G1):
     #Graph Information
     snap.PrintInfo(G1, "QA Stats", "qa-info.txt", False)
     #SCC
@@ -26,16 +78,12 @@ def prueba1():
     snap.GetPageRank(G1, PRankH)
     for item in PRankH:
         print(item, PRankH[item])
-    #Print Graph
-    labels = {}
-    for NI in G1.Nodes():
-        labels[NI.GetId()] = str(NI.GetId())
-    snap.DrawGViz(G1, snap.gvlDot, "G1.png", "G1", labels)
 
 def netinf_results():
-    G = snap.TNGraph.New()
-    G2 = nx.DiGraph(directed=True)
-    #lectura de nodos
+    #N = snap.TNEANet.New() #directed network
+    G = snap.TNGraph.New() #Graph with snap library
+    G2 = nx.DiGraph(directed=True) #Graph with networkx library
+    #Nodes
     line = stdin.readline().strip()
     while len(line) != 0:
         x = line.split(",")
@@ -43,7 +91,7 @@ def netinf_results():
         G.AddNode(u)
         G2.add_node(u)
         line = stdin.readline().strip()
-    #lectura de arcos
+    #Edges
     line = stdin.readline().strip()
     while len(line) != 0:
         x = line.split(",")
@@ -51,10 +99,21 @@ def netinf_results():
         G.AddEdge(u,v)
         G2.add_edge(u, v)
         line = stdin.readline().strip()
+
     #Number of nodes and edges in G
     print("G: Nodes={0}, Edges={1}".format(G.GetNodes(), G.GetEdges()))
     print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
+
+    #Study of topological measurements
+    topological_measurements(G)
+    A = [len(c) for c in sorted(nx.connected_components(G2), key=len, reverse=True)]
+    print(A)
+    #subgraphs = list(ProjGraph.subgraph(c) for c in nx.connected_components(ProjGraph))[0]
+    #print(len(subgraphs))
+    #print(subgraphs)
+
     #Plot graph
+    """
     labels = {}
     for NI in G.Nodes():
         labels[NI.GetId()] = str(NI.GetId())
@@ -62,40 +121,8 @@ def netinf_results():
     options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
     nx.draw(G2, **options)
     plt.savefig("IN_MovieLens2.png", format="PNG")
+    """
     return
 
-def plot_bipartite(BG, df):
-    pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
-    pos.update({node:[1, i] for i,node in enumerate(df['item_id'])})
-    color_dict = {0:'b',1:'r'}
-    color_list = [color_dict[i[1]] for i in BG.nodes.data('bipartite')]
-    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3, "node_color":color_list}
-    nx.draw(BG, pos, **options)
-    plt.show()
-
-def plot_projection(G):
-    pos = nx.spring_layout(G)
-    nx.draw_networkx(G,pos)
-    labels = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
-    plt.axis('off')
-    plt.show()
-
-def movielens_network():
-    #N1 = snap.TNEANet.New() #directed network
-    #Usar TBPGraph para grafos bipartitos
-    df = pd.read_csv('prueba.csv', usecols=[0, 1, 2])
-    df['user_id'] = df['user_id'].apply(lambda x: int(2*x))
-    df['item_id'] = df['item_id'].apply(lambda x: int(2*x+1))
-    BG = nx.Graph()
-    BG.add_nodes_from(df['user_id'], bipartite=0)
-    BG.add_nodes_from(df['item_id'], bipartite=1)
-    BG.add_weighted_edges_from([(row['user_id'], row['item_id'], row['rating']) for idx, row in df.iterrows()], weight='rating')
-    #plot_bipartite(BG, df)
-    user_nodes, movie_nodes = bipartite.sets(BG)
-    ProjGraph = bipartite.weighted_projected_graph(BG, user_nodes)
-    plot_projection(ProjGraph)
-    return
-
-netinf_results()
-#movielens_network()
+movielens_graph()
+#netinf_results()

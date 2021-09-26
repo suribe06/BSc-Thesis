@@ -4,7 +4,7 @@ cascades = "movielens-cascades2.txt"
 name_output = "movielens2"
 edges = 205412
 model = 0
-alpha = 1*10**(-3) #default:1
+alpha = 1*10**(-8) #default:1
 
 #Clean previous executions
 #os.system("make clean")
