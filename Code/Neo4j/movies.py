@@ -104,8 +104,8 @@ def main():
     return
 
 #main()
-#modelo1()
-reset_graph()
+modelo1()
+#reset_graph()
 
 """
 MATCH (u1:User)-[:CONNECTED]->(u2:User)

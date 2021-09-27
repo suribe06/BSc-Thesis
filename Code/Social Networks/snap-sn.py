@@ -5,7 +5,6 @@ from sys import stdin
 import networkx as nx
 import pandas as pd
 import snap
-from time import time
 
 def plot_bipartite(BG, df):
     pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
@@ -44,11 +43,8 @@ def movielens_graph():
     #plot_snap(SnapProjGraph, "UserProjection", "User Projection with networkx")
 
     #Topological Measures of the User Projection
-    #degree_distribution_networkx(ProjGraph)
-    t1 = time()
+    degree_distribution_networkx(ProjGraph)
     topological_measures_snap(SnapProjGraph)
-    t2 = time()
-    print("Execution Time {0}".format(t2-t1))
     return
 
 def convert_networkx_to_snap(G):
@@ -61,16 +57,19 @@ def convert_networkx_to_snap(G):
         #print(data['weight'])
     return SG
 
+def plot_graphics(x, y, l, sty, name, lw, xl, yl):
+    plt.clf()
+    plt.plot(x, y,sty, label=l, lw=lw)
+    plt.xlabel(xl)
+    plt.ylabel(yl)
+    plt.legend()
+    plt.grid()
+    plt.savefig(name)
+
 def degree_distribution_networkx(G):
     degree_freq = nx.degree_histogram(G)
     degrees = range(len(degree_freq))
-    plt.figure(figsize=(12, 8))
-    plt.plot(degrees, degree_freq,'c', label="Degree Distribution")
-    plt.xlabel('Degree')
-    plt.ylabel('Frequency')
-    plt.legend()
-    plt.grid()
-    plt.savefig("UserProjectionDegreeDistribution.png")
+    plot_graphics(degrees, degree_freq, 'Degree Distribution', 'c', "UserProjectionDegreeDistribution.png", 0.6, 'Degree', 'Frequency')
     return
 
 def topological_measures_snap(G1):
@@ -93,7 +92,7 @@ def topological_measures_snap(G1):
     #Clustering Coefficient
     avg_clustering = G1.GetClustCf(False, -1)
     print("Average Clustering Coefficient: {0}".format(avg_clustering))
-    
+
     #Betweenness
     nodes, edges = G1.GetBetweennessCentr(1.0)
     x = []
@@ -101,11 +100,8 @@ def topological_measures_snap(G1):
     for u in nodes:
         x.append(int(u/2))
         y.append(nodes[u])
-    plt.plot(x, y, 'm', label='Nodes Betweenness')
-    plt.legend()
-    plt.savefig("UserProjectionBetweenness.png")
+    plot_graphics(x, y, 'Betweenness Centrality', 'g', "UserProjectionBetweenness.png", 0.3, 'Nodes', 'BC(u)')
 
-    plt.clf()
     #Closeness
     x2 = []
     y2 = []
@@ -113,9 +109,7 @@ def topological_measures_snap(G1):
         CloseCentr = G1.GetClosenessCentr(NI.GetId())
         x2.append(NI.GetId()/2)
         y2.append(CloseCentr)
-    plt.plot(x2, y2, 'm', label='Nodes Closeness')
-    plt.legend()
-    plt.savefig("UserProjectionCloseness.png")
+    plot_graphics(x2, y2, 'Closeness Centrality', 'r', "UserProjectionCloseness.png", 0.3, 'Nodes', 'CC(u)')
     return
 
 
