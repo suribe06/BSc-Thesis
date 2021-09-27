@@ -5,6 +5,7 @@ from sys import stdin
 import networkx as nx
 import pandas as pd
 import snap
+from time import time
 
 def plot_bipartite(BG, df):
     pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
@@ -15,13 +16,11 @@ def plot_bipartite(BG, df):
     nx.draw(BG, pos, **options)
     plt.show()
 
-def plot_projection(G):
-    #pos = nx.spring_layout(G)
-    options = {"node_size":7, "with_labels":False, "arrows":False, "width":0.1}
-    nx.draw(G, **options)
-    #nx.draw_networkx(G,pos)
-    #labels = nx.get_edge_attributes(G,'weight')
-    #nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
+def plot_networkx(G):
+    pos = nx.spring_layout(G)
+    nx.draw_networkx(G,pos)
+    labels = nx.get_edge_attributes(G,'weight')
+    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
     plt.axis('off')
     plt.savefig("Users Projected Graph.png", dpi=1000)
 
@@ -34,53 +33,94 @@ def movielens_graph():
     BG.add_nodes_from(df['item_id'], bipartite=1)
     BG.add_weighted_edges_from([(row['user_id'], row['item_id'], row['rating']) for idx, row in df.iterrows()], weight='rating')
     #plot_bipartite(BG, df)
+
+    #Graph User Projection (using networkx)
     user_nodes, movie_nodes = bipartite.sets(BG)
     ProjGraph = bipartite.weighted_projected_graph(BG, user_nodes)
-    print(ProjGraph.number_of_nodes())
-    print("Users Projected Graph: Edges={0}".format(ProjGraph.number_of_edges()))
-    #degrees = [ProjGraph.degree(n) for n in ProjGraph.nodes()]
-    #plt.hist(degrees)
-    #plt.show()
-    degree_freq = nx.degree_histogram(ProjGraph)
+    SnapProjGraph = convert_networkx_to_snap(ProjGraph) #convert networkx graph to snap graph
+
+    #Plot the Graph User Projection
+    #plot_networkx(ProjGraph)
+    #plot_snap(SnapProjGraph, "UserProjection", "User Projection with networkx")
+
+    #Topological Measures of the User Projection
+    #degree_distribution_networkx(ProjGraph)
+    t1 = time()
+    topological_measures_snap(SnapProjGraph)
+    t2 = time()
+    print("Execution Time {0}".format(t2-t1))
+    return
+
+def convert_networkx_to_snap(G):
+    SG = snap.TUNGraph.New() #undirected graph sin la U es dirigido
+    for u in list(G.nodes):
+        SG.AddNode(int(u))
+
+    for (node1,node2,data) in G.edges(data=True):
+        SG.AddEdge(int(node1), int(node2))
+        #print(data['weight'])
+    return SG
+
+def degree_distribution_networkx(G):
+    degree_freq = nx.degree_histogram(G)
     degrees = range(len(degree_freq))
     plt.figure(figsize=(12, 8))
-    plt.plot(degrees, degree_freq,'co-', label="Degree Distribution")
+    plt.plot(degrees, degree_freq,'c', label="Degree Distribution")
     plt.xlabel('Degree')
     plt.ylabel('Frequency')
     plt.legend()
     plt.grid()
     plt.savefig("UserProjectionDegreeDistribution.png")
-    #for x in ProjGraph.edges():
-        #print("{0} {1}".format(int(x[0]), int(x[1])))
-    #plot_projection(ProjGraph)
     return
 
-def convert_networkx_to_snap():
-    return
-
-def topological_measurements(G1):
+def topological_measures_snap(G1):
     #Graph Information
     snap.PrintInfo(G1, "QA Stats", "qa-info.txt", False)
-    #SCC
-    print("Strongly Cnnected Components")
-    Components = G1.GetSccs()
-    for CnCom in Components:
-        print("Size of component: %d" % CnCom.Len())
+
     #Degree Distribution
-    print("Degree Distribution")
-    DegToCntV = snap.TIntPrV()
-    snap.GetDegCnt(G1, DegToCntV)
-    for item in DegToCntV:
-        print("{0} nodes with degree {1}".format(item.GetVal2(), item.GetVal1()))
-    #Node Centrality (Page Rank)
-    print("PageRank of the Graph")
-    PRankH = snap.TIntFltH()
-    snap.GetPageRank(G1, PRankH)
-    for item in PRankH:
-        print(item, PRankH[item])
+    #snap.PlotInDegDistr(G1, "UserProjectionDegree", "User Projection Degree")
+
+    #Diameter
+    diam = G1.GetBfsFullDiam(10, False)
+    print("Diameter: {0}".format(diam))
+
+    #Density
+    n = G1.GetNodes()
+    m = G1.GetEdges()
+    delta = (2*m) / (n*(n-1))
+    print("Density: {0}".format(delta*100))
+
+    #Clustering Coefficient
+    avg_clustering = G1.GetClustCf(False, -1)
+    print("Average Clustering Coefficient: {0}".format(avg_clustering))
+    
+    #Betweenness
+    nodes, edges = G1.GetBetweennessCentr(1.0)
+    x = []
+    y = []
+    for u in nodes:
+        x.append(int(u/2))
+        y.append(nodes[u])
+    plt.plot(x, y, 'm', label='Nodes Betweenness')
+    plt.legend()
+    plt.savefig("UserProjectionBetweenness.png")
+
+    plt.clf()
+    #Closeness
+    x2 = []
+    y2 = []
+    for NI in G1.Nodes():
+        CloseCentr = G1.GetClosenessCentr(NI.GetId())
+        x2.append(NI.GetId()/2)
+        y2.append(CloseCentr)
+    plt.plot(x2, y2, 'm', label='Nodes Closeness')
+    plt.legend()
+    plt.savefig("UserProjectionCloseness.png")
+    return
+
 
 def netinf_results():
-    #N = snap.TNEANet.New() #directed network
+    #N = snapClustering Coefficient.TNEANet.New() #directed network
     G = snap.TNGraph.New() #Graph with snap library
     G2 = nx.DiGraph(directed=True) #Graph with networkx library
     #Nodes
@@ -105,7 +145,7 @@ def netinf_results():
     print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
 
     #Study of topological measurements
-    topological_measurements(G)
+    topological_measures_snap(G)
     A = [len(c) for c in sorted(nx.connected_components(G2), key=len, reverse=True)]
     print(A)
     #subgraphs = list(ProjGraph.subgraph(c) for c in nx.connected_components(ProjGraph))[0]
@@ -113,15 +153,16 @@ def netinf_results():
     #print(subgraphs)
 
     #Plot graph
-    """
+    #options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
+    #nx.draw(G2, **options)
+    #plt.savefig("IN_MovieLens2.png", format="PNG")
+    return
+
+def plot_snap(G, name, fig_title):
     labels = {}
     for NI in G.Nodes():
         labels[NI.GetId()] = str(NI.GetId())
-    snap.DrawGViz(G, snap.gvlDot, "inferred_network_movielens.png", "Inferred Network with Exponential Model and alpha=0.001", labels)
-    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
-    nx.draw(G2, **options)
-    plt.savefig("IN_MovieLens2.png", format="PNG")
-    """
+    snap.DrawGViz(G, snap.gvlDot, "{0}.png".format(name), "{0}".format(fig_title), labels)
     return
 
 movielens_graph()
