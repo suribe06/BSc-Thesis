@@ -156,7 +156,7 @@ def plot_snap(G, name, fig_title):
     labels = {}
     for NI in G.Nodes():
         labels[NI.GetId()] = str(NI.GetId())
-    snap.DrawGViz(G, snap.gvlDot, "{0}.png".format(name), "{0}".format(fig_title), labels)
+    snap.DrawGViz(G, snap.gvlNeato, "{0}.png".format(name), "{0}".format(fig_title))
     return
 
 movielens_graph()
