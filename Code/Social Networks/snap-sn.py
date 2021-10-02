@@ -86,7 +86,9 @@ def plot_graphics(x, y, l, sty, name, lw, xl, yl):
 def degree_distribution_networkx(G):
     degree_freq = nx.degree_histogram(G)
     degrees = range(len(degree_freq))
-    plot_graphics(degrees, degree_freq, 'Degree Distribution', 'c', "UserProjectionDegreeDistribution.png", 0.6, 'Degree', 'Frequency')
+    avg_deg = sum(dict(G.degree()).values()) / G.number_of_nodes()
+    print("Average Degree = {0}".format(avg_deg))
+    #plot_graphics(degrees, degree_freq, 'Degree Distribution', 'c', "UserProjectionDegreeDistribution.png", 0.6, 'Degree', 'Frequency')
     return
 
 def topological_measures_snap(G1):
@@ -117,7 +119,9 @@ def topological_measures_snap(G1):
     for u in nodes:
         x.append(int(u))
         y.append(nodes[u])
-    plot_graphics(x, y, 'Betweenness Centrality', 'g', "UserProjectionBetweenness.png", 0.3, 'Nodes', 'BC(u)')
+    avg_bet = np.mean(y)
+    print("Average Betweenness = {0}".format(avg_bet))
+    #plot_graphics(x, y, 'Betweenness Centrality', 'g', "UserProjectionBetweenness.png", 0.3, 'Nodes', 'BC(u)')
 
     #Closeness
     x2 = []
@@ -126,11 +130,13 @@ def topological_measures_snap(G1):
         CloseCentr = G1.GetClosenessCentr(NI.GetId())
         x2.append(NI.GetId())
         y2.append(CloseCentr)
-    plot_graphics(x2, y2, 'Closeness Centrality', 'r', "UserProjectionCloseness.png", 0.3, 'Nodes', 'CC(u)')
+    avg_clo = np.mean(y2)
+    print("Average Closeness = {0}".format(avg_clo))
+    #plot_graphics(x2, y2, 'Closeness Centrality', 'r', "UserProjectionCloseness.png", 0.3, 'Nodes', 'CC(u)')
     return
 
 def netinf_results():
-    #N = snapClustering Coefficient.TNEANet.New() #directed network
+    #N = snap.TNEANet.New() #directed network
     G = snap.TNGraph.New() #Graph with snap library
     G2 = nx.DiGraph(directed=True) #Graph with networkx library
     #Nodes
@@ -154,18 +160,21 @@ def netinf_results():
     print("G: Nodes={0}, Edges={1}".format(G.GetNodes(), G.GetEdges()))
     print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
 
-    #Study of topological measurements
+    #Study of topological measures
+    degree_distribution_networkx(G2)
     topological_measures_snap(G)
+    """
     A = [len(c) for c in sorted(nx.connected_components(G2), key=len, reverse=True)]
     print(A)
-    #subgraphs = list(ProjGraph.subgraph(c) for c in nx.connected_components(ProjGraph))[0]
-    #print(len(subgraphs))
-    #print(subgraphs)
+    subgraphs = list(ProjGraph.subgraph(c) for c in nx.connected_components(ProjGraph))[0]
+    print(len(subgraphs))
+    print(subgraphs)
 
     #Plot graph
-    #options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
-    #nx.draw(G2, **options)
-    #plt.savefig("IN_MovieLens2.png", format="PNG")
+    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
+    nx.draw(G2, **options)
+    plt.savefig("IN_MovieLens2.png", format="PNG")
+    """
     return
 
 movielens_graph()
