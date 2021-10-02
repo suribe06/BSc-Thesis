@@ -88,12 +88,12 @@ def degree_distribution_networkx(G):
     degrees = range(len(degree_freq))
     avg_deg = sum(dict(G.degree()).values()) / G.number_of_nodes()
     print("Average Degree = {0}".format(avg_deg))
-    #plot_graphics(degrees, degree_freq, 'Degree Distribution', 'c', "UserProjectionDegreeDistribution.png", 0.6, 'Degree', 'Frequency')
+    plot_graphics(degrees, degree_freq, 'Degree Distribution', 'c', "DegreeDistribution.png", 0.6, 'Degree', 'Frequency')
     return
 
 def topological_measures_snap(G1):
     #Graph Information
-    snap.PrintInfo(G1, "QA Stats", "qa-info.txt", False)
+    snap.PrintInfo(G1, "QA Stats", "qa-info2.txt", False)
 
     #Degree Distribution
     #snap.PlotInDegDistr(G1, "UserProjectionDegree", "User Projection Degree")
@@ -121,24 +121,34 @@ def topological_measures_snap(G1):
         y.append(nodes[u])
     avg_bet = np.mean(y)
     print("Average Betweenness = {0}".format(avg_bet))
-    #plot_graphics(x, y, 'Betweenness Centrality', 'g', "UserProjectionBetweenness.png", 0.3, 'Nodes', 'BC(u)')
+    plot_graphics(x, y, 'Betweenness Centrality', 'g', "Betweenness.png", 0.3, 'Nodes', 'BC(u)')
 
     #Closeness
-    x2 = []
-    y2 = []
+    x.clear()
+    y.clear()
     for NI in G1.Nodes():
         CloseCentr = G1.GetClosenessCentr(NI.GetId())
-        x2.append(NI.GetId())
-        y2.append(CloseCentr)
-    avg_clo = np.mean(y2)
+        x.append(NI.GetId())
+        y.append(CloseCentr)
+    avg_clo = np.mean(y)
     print("Average Closeness = {0}".format(avg_clo))
-    #plot_graphics(x2, y2, 'Closeness Centrality', 'r', "UserProjectionCloseness.png", 0.3, 'Nodes', 'CC(u)')
+    plot_graphics(x, y, 'Closeness Centrality', 'r', "Closeness.png", 0.3, 'Nodes', 'CC(u)')
+
+    #Eigenvector
+    x.clear()
+    y.clear()
+    NIdEigenH = G1.GetEigenVectorCentr()
+    for NI in G1.Nodes():
+        x.append(NI.GetId())
+        y.append(NIdEigenH[NI.GetId()])
+    avg_eig = np.mean(y)
+    print("Average Eigenvector = {0}".format(avg_eig))
+    plot_graphics(x, y, 'Eigenvector Centrality', 'm', "Eigenvector.png", 0.3, 'Nodes', 'EC(u)')
     return
 
 def netinf_results():
-    #N = snap.TNEANet.New() #directed network
-    G = snap.TNGraph.New() #Graph with snap library
-    G2 = nx.DiGraph(directed=True) #Graph with networkx library
+    G = snap.TUNGraph.New() #Graph with snap library
+    G2 = nx.Graph() #Graph with networkx library
     #Nodes
     line = stdin.readline().strip()
     while len(line) != 0:
@@ -163,19 +173,7 @@ def netinf_results():
     #Study of topological measures
     degree_distribution_networkx(G2)
     topological_measures_snap(G)
-    """
-    A = [len(c) for c in sorted(nx.connected_components(G2), key=len, reverse=True)]
-    print(A)
-    subgraphs = list(ProjGraph.subgraph(c) for c in nx.connected_components(ProjGraph))[0]
-    print(len(subgraphs))
-    print(subgraphs)
-
-    #Plot graph
-    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
-    nx.draw(G2, **options)
-    plt.savefig("IN_MovieLens2.png", format="PNG")
-    """
     return
 
-movielens_graph()
-#netinf_results()
+#movielens_graph()
+netinf_results()
