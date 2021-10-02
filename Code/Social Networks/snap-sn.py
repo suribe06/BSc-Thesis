@@ -4,6 +4,7 @@ from matplotlib import pylab
 from sys import stdin
 import networkx as nx
 import pandas as pd
+import numpy as np
 import snap
 
 def plot_bipartite(BG, df):
@@ -15,6 +16,13 @@ def plot_bipartite(BG, df):
     nx.draw(BG, pos, **options)
     plt.show()
 
+def plot_snap(G, name, fig_title):
+    labels = {}
+    for NI in G.Nodes():
+        labels[NI.GetId()] = str(NI.GetId())
+    snap.DrawGViz(G, snap.gvlDot, "{0}.png".format(name), "{0}".format(fig_title))
+    return
+
 def plot_networkx(G):
     pos = nx.spring_layout(G)
     nx.draw_networkx(G,pos)
@@ -25,8 +33,17 @@ def plot_networkx(G):
 
 def movielens_graph():
     df = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
-    df['user_id'] = df['user_id'].apply(lambda x: int(2*x))
-    df['item_id'] = df['item_id'].apply(lambda x: int(2*x+1))
+    M = df['user_id'].nunique()
+    N = df['item_id'].nunique()
+    movie_mapper = dict(zip(np.unique(df["item_id"]), list(range(0,N)))) #Nodes 0 to N-1 are movies
+    user_mapper = dict(zip(np.unique(df["user_id"]), list(range(N,N+M))))#Nodes N to M-1 are users
+    movie_inv_mapper = dict(zip(list(range(0,N)), np.unique(df["item_id"])))
+    user_inv_mapper = dict(zip(list(range(N,N+M)), np.unique(df["user_id"])))
+
+    df['user_id'] = df['user_id'].apply(lambda x: user_mapper[x])
+    df['item_id'] = df['item_id'].apply(lambda x: movie_mapper[x])
+
+    #Create the Bipartite Graph
     BG = nx.Graph()
     BG.add_nodes_from(df['user_id'], bipartite=0)
     BG.add_nodes_from(df['item_id'], bipartite=1)
@@ -40,7 +57,7 @@ def movielens_graph():
 
     #Plot the Graph User Projection
     #plot_networkx(ProjGraph)
-    #plot_snap(SnapProjGraph, "UserProjection", "User Projection with networkx")
+    #plot_snap(SnapProjGraph, "UserProjection", "User Projection")
 
     #Topological Measures of the User Projection
     degree_distribution_networkx(ProjGraph)
@@ -98,7 +115,7 @@ def topological_measures_snap(G1):
     x = []
     y = []
     for u in nodes:
-        x.append(int(u/2))
+        x.append(int(u))
         y.append(nodes[u])
     plot_graphics(x, y, 'Betweenness Centrality', 'g', "UserProjectionBetweenness.png", 0.3, 'Nodes', 'BC(u)')
 
@@ -107,11 +124,10 @@ def topological_measures_snap(G1):
     y2 = []
     for NI in G1.Nodes():
         CloseCentr = G1.GetClosenessCentr(NI.GetId())
-        x2.append(NI.GetId()/2)
+        x2.append(NI.GetId())
         y2.append(CloseCentr)
     plot_graphics(x2, y2, 'Closeness Centrality', 'r', "UserProjectionCloseness.png", 0.3, 'Nodes', 'CC(u)')
     return
-
 
 def netinf_results():
     #N = snapClustering Coefficient.TNEANet.New() #directed network
@@ -150,13 +166,6 @@ def netinf_results():
     #options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3}
     #nx.draw(G2, **options)
     #plt.savefig("IN_MovieLens2.png", format="PNG")
-    return
-
-def plot_snap(G, name, fig_title):
-    labels = {}
-    for NI in G.Nodes():
-        labels[NI.GetId()] = str(NI.GetId())
-    snap.DrawGViz(G, snap.gvlNeato, "{0}.png".format(name), "{0}".format(fig_title))
     return
 
 movielens_graph()
