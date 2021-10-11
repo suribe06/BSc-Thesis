@@ -3,8 +3,9 @@ import os
 cascades = "movielens-cascades2.txt"
 name_output = "movielens2"
 edges = 205412
-model = 0
-alpha = 1*10**(-3) #default:1
+model = 0 #0:exponential, 1:powerlaw, 2:rayleigh
+expo = -3
+alpha = 1*10**(expo) #default:1
 
 #Clean previous executions
 #os.system("make clean")
