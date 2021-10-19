@@ -6,6 +6,7 @@ import networkx as nx
 import pandas as pd
 import numpy as np
 import snap
+import seaborn as sns
 
 def plot_bipartite(BG, df):
     pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
@@ -30,6 +31,7 @@ def plot_networkx(G):
     nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
     plt.axis('off')
     plt.savefig("Users Projected Graph.png", dpi=1000)
+    return
 
 def movielens_graph():
     df = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
@@ -62,6 +64,7 @@ def movielens_graph():
     #Topological Measures of the User Projection
     degree_distribution_networkx(ProjGraph)
     topological_measures_snap(SnapProjGraph)
+
     return
 
 def convert_networkx_to_snap(G):
@@ -74,29 +77,37 @@ def convert_networkx_to_snap(G):
         #print(data['weight'])
     return SG
 
-def plot_graphics(x, y, l, sty, name, lw, xl, yl):
+def plot_graphics(data, col1, col2, name):
     plt.clf()
-    plt.plot(x, y,sty, label=l, lw=lw)
-    plt.xlabel(xl)
-    plt.ylabel(yl)
-    plt.legend()
+    sns.distplot(data, hist=True, kde=True, color=col1, kde_kws={'linewidth': 3}, hist_kws={'color':col2})
+    plt.yscale('log')
+    plt.xlabel(name)
+    plt.legend(labels=['Probability Density Function','{0} Probability Density'.format(name)])
     plt.grid()
-    plt.savefig(name)
+    plt.savefig("{0}.png".format(name))
 
 def degree_distribution_networkx(G):
-    degree_freq = nx.degree_histogram(G)
-    degrees = range(len(degree_freq))
-    avg_deg = sum(dict(G.degree()).values()) / G.number_of_nodes()
+    degree_freq = dict(G.degree()).values()
+    degrees = range(0, len(degree_freq))
+    avg_deg = sum(degree_freq) / G.number_of_nodes()
     print("Average Degree = {0}".format(avg_deg))
-    plot_graphics(degrees, degree_freq, 'Degree Distribution', 'c', "DegreeDistribution.png", 0.6, 'Degree', 'Frequency')
+    d = 1
+    left_of_first_bin = min(degrees) - d/2
+    right_of_last_bin = max(degrees) + d/2
+    b = np.arange(left_of_first_bin, right_of_last_bin + d, d)
+    plt.clf()
+    sns.distplot(list(degree_freq), bins=b, hist=True, kde=True, color='darkblue', kde_kws={'linewidth': 3})
+    plt.yscale('log')
+    plt.ylim(10**-3, 10**-1)
+    plt.xlabel("Degree")
+    plt.legend(labels=['Probability Density Function','Degree Probability Density'])
+    plt.grid()
+    plt.savefig("Degree.png")
     return
 
 def topological_measures_snap(G1):
     #Graph Information
     snap.PrintInfo(G1, "QA Stats", "qa-info2.txt", False)
-
-    #Degree Distribution
-    #snap.PlotInDegDistr(G1, "UserProjectionDegree", "User Projection Degree")
 
     #Diameter
     diam = G1.GetBfsFullDiam(10, False)
@@ -114,36 +125,30 @@ def topological_measures_snap(G1):
 
     #Betweenness
     nodes, edges = G1.GetBetweennessCentr(1.0)
-    x = []
-    y = []
+    b = []
     for u in nodes:
-        x.append(int(u))
-        y.append(nodes[u])
-    avg_bet = np.mean(y)
+        b.append(nodes[u])
+    avg_bet = np.mean(b)
     print("Average Betweenness = {0}".format(avg_bet))
-    plot_graphics(x, y, 'Betweenness Centrality', 'g', "Betweenness.png", 0.3, 'Nodes', 'BC(u)')
+    plot_graphics(b, 'darkgreen', 'green', 'Betweenness')
 
     #Closeness
-    x.clear()
-    y.clear()
+    c = []
     for NI in G1.Nodes():
         CloseCentr = G1.GetClosenessCentr(NI.GetId())
-        x.append(NI.GetId())
-        y.append(CloseCentr)
-    avg_clo = np.mean(y)
+        c.append(CloseCentr)
+    avg_clo = np.mean(c)
     print("Average Closeness = {0}".format(avg_clo))
-    plot_graphics(x, y, 'Closeness Centrality', 'r', "Closeness.png", 0.3, 'Nodes', 'CC(u)')
+    plot_graphics(c, 'firebrick', 'red', 'Closeness')
 
     #Eigenvector
-    x.clear()
-    y.clear()
+    e = []
     NIdEigenH = G1.GetEigenVectorCentr()
     for NI in G1.Nodes():
-        x.append(NI.GetId())
-        y.append(NIdEigenH[NI.GetId()])
-    avg_eig = np.mean(y)
+        e.append(NIdEigenH[NI.GetId()])
+    avg_eig = np.mean(e)
     print("Average Eigenvector = {0}".format(avg_eig))
-    plot_graphics(x, y, 'Eigenvector Centrality', 'm', "Eigenvector.png", 0.3, 'Nodes', 'EC(u)')
+    plot_graphics(e, 'purple', 'magenta', 'Eigenvector')
     return
 
 def netinf_results():
@@ -175,5 +180,5 @@ def netinf_results():
     topological_measures_snap(G)
     return
 
-#movielens_graph()
-netinf_results()
+movielens_graph()
+#netinf_results()
