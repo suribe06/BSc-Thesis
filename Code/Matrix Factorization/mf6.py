@@ -10,8 +10,7 @@ from time import time
 from surprise import Dataset, Reader, accuracy
 from surprise.model_selection import cross_validate, train_test_split, GridSearchCV
 #Prediction algorithms
-from surprise import SVD
-from surprise import BaselineOnly
+from surprise import SVD, BaselineOnly
 
 # Load the movielens-100k dataset (download it if needed).
 #data = Dataset.load_builtin('ml-100k')
@@ -85,11 +84,10 @@ print(gs.best_score['rmse'])
 print(gs.best_params['rmse'])
 
 #estimating a rating
-user_id = str(1)
-movie_id = str(1029)
-gs.predict(user_id, movie_id)
+user_id = 1
+movie_id = 1029
+gs.predict(user_id, movie_id, 3.0)
 
 #predict new rating
-user_id = str(1)
-movie_id = str(50)
+movie_id = 50
 gs.predict(user_id, movie_id)

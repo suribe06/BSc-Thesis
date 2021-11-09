@@ -5,11 +5,8 @@ import matplotlib.pyplot as plt
 from surprise import Reader, Dataset, SVD
 
 df_ratings = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
-df_movies = pd.read_csv('movies.csv', usecols=[0, 1, 2])
 
 print("Number of rows {0} in ratings".format(df_ratings.shape[0]))
-print("Number of rows {0} in movies".format(df_movies.shape[0]))
-
 user_count = df_ratings['user_id'].nunique()
 movie_count = df_movies["item_id"].nunique()
 print("Number of users: {0}".format(user_count))
@@ -17,7 +14,6 @@ print("Number of movies: {0}".format(movie_count))
 
 #looking for any missing data
 print(df_ratings.isnull().any())
-print(df_movies.isnull().any())
 
 #Measures of central tendency
 print(df_ratings.describe())
@@ -51,10 +47,3 @@ plt.bar(ratings, rating_percentage, color="cyan")
 plt.xlabel('Rating')
 plt.ylabel('Porcentaje Total por Rating')
 plt.show()
-
-data = df_movies.merge(df_ratings,on = 'item_id',how = 'inner')
-print(data.isnull().any())
-print(data.head())
-
-#reader = Reader(rating_scale=(1, rows))
-#data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
