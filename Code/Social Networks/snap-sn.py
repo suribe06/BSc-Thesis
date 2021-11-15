@@ -2,80 +2,25 @@ from networkx.algorithms import bipartite
 import matplotlib.pyplot as plt
 from matplotlib import pylab
 from sys import stdin
+import seaborn as sns
 import networkx as nx
 import pandas as pd
 import numpy as np
 import snap
-import seaborn as sns
+import csv
 
-def plot_bipartite(BG, df):
-    pos = {node:[0, i] for i,node in enumerate(df['user_id'])}
-    pos.update({node:[1, i] for i,node in enumerate(df['item_id'])})
-    color_dict = {0:'b',1:'r'}
-    color_list = [color_dict[i[1]] for i in BG.nodes.data('bipartite')]
-    options = {"node_size":10, "with_labels":False, "arrows":False, "width":0.3, "node_color":color_list}
-    nx.draw(BG, pos, **options)
-    plt.show()
-
-def plot_snap(G, name, fig_title):
-    labels = {}
-    for NI in G.Nodes():
-        labels[NI.GetId()] = str(NI.GetId())
-    snap.DrawGViz(G, snap.gvlDot, "{0}.png".format(name), "{0}".format(fig_title))
+def generate_user_properties_dataset(M, m1, m2, m3, m4):
+    fields = ["UserId", "degree", "betweenness", "closeness", "eigenvector"]
+    filename = "user_topologycal_properties.csv"
+    rows = []
+    for i in range(M):
+    	row = [i+1, m1[i], m2[i], m3[i], m4[i]]
+    	rows.append(row)
+    with open(filename, 'w') as csvfile:
+    	csvwriter = csv.writer(csvfile)
+    	csvwriter.writerow(fields)
+    	csvwriter.writerows(rows)
     return
-
-def plot_networkx(G):
-    pos = nx.spring_layout(G)
-    nx.draw_networkx(G,pos)
-    labels = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
-    plt.axis('off')
-    plt.savefig("Users Projected Graph.png", dpi=1000)
-    return
-
-def movielens_graph():
-    df = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
-    M = df['user_id'].nunique()
-    N = df['item_id'].nunique()
-    movie_mapper = dict(zip(np.unique(df["item_id"]), list(range(0,N)))) #Nodes 0 to N-1 are movies
-    user_mapper = dict(zip(np.unique(df["user_id"]), list(range(N,N+M))))#Nodes N to M-1 are users
-    movie_inv_mapper = dict(zip(list(range(0,N)), np.unique(df["item_id"])))
-    user_inv_mapper = dict(zip(list(range(N,N+M)), np.unique(df["user_id"])))
-
-    df['user_id'] = df['user_id'].apply(lambda x: user_mapper[x])
-    df['item_id'] = df['item_id'].apply(lambda x: movie_mapper[x])
-
-    #Create the Bipartite Graph
-    BG = nx.Graph()
-    BG.add_nodes_from(df['user_id'], bipartite=0)
-    BG.add_nodes_from(df['item_id'], bipartite=1)
-    BG.add_weighted_edges_from([(row['user_id'], row['item_id'], row['rating']) for idx, row in df.iterrows()], weight='rating')
-    #plot_bipartite(BG, df)
-
-    #Graph User Projection (using networkx)
-    user_nodes, movie_nodes = bipartite.sets(BG)
-    ProjGraph = bipartite.weighted_projected_graph(BG, user_nodes)
-    SnapProjGraph = convert_networkx_to_snap(ProjGraph) #convert networkx graph to snap graph
-
-    #Plot the Graph User Projection
-    #plot_networkx(ProjGraph)
-    #plot_snap(SnapProjGraph, "UserProjection", "User Projection")
-
-    #Topological Measures of the User Projection
-    degree_distribution_networkx(ProjGraph)
-    topological_measures_snap(SnapProjGraph)
-
-    return
-
-def convert_networkx_to_snap(G):
-    SG = snap.TUNGraph.New() #undirected graph sin la U es dirigido
-    for u in list(G.nodes):
-        SG.AddNode(int(u))
-
-    for (node1,node2,data) in G.edges(data=True):
-        SG.AddEdge(int(node1), int(node2))
-        #print(data['weight'])
-    return SG
 
 def plot_graphics(data, col1, col2, name):
     plt.clf()
@@ -86,8 +31,46 @@ def plot_graphics(data, col1, col2, name):
     plt.grid()
     plt.savefig("{0}.png".format(name))
 
+def movielens_graph():
+    df = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
+    M = df['UserId'].nunique()
+    N = df['ItemId'].nunique()
+    movie_mapper = dict(zip(np.unique(df["ItemId"]), list(range(0,N)))) #Nodes 0 to N-1 are movies
+    user_mapper = dict(zip(np.unique(df["UserId"]), list(range(N,N+M))))#Nodes N to M-1 are users
+    movie_inv_mapper = dict(zip(list(range(0,N)), np.unique(df["ItemId"])))
+    user_inv_mapper = dict(zip(list(range(N,N+M)), np.unique(df["UserId"])))
+
+    df['UserId'] = df['UserId'].apply(lambda x: user_mapper[x])
+    df['ItemId'] = df['ItemId'].apply(lambda x: movie_mapper[x])
+
+    #Create the Bipartite Graph
+    BG = nx.Graph()
+    BG.add_nodes_from(df['UserId'], bipartite=0)
+    BG.add_nodes_from(df['ItemId'], bipartite=1)
+    BG.add_weighted_edges_from([(row['UserId'], row['ItemId'], row['Rating']) for idx, row in df.iterrows()], weight='rating')
+
+    #Graph User Projection (using networkx)
+    user_nodes, movie_nodes = bipartite.sets(BG)
+    ProjGraph = bipartite.weighted_projected_graph(BG, user_nodes)
+    SnapProjGraph = convert_networkx_to_snap(ProjGraph) #convert networkx graph to snap graph
+
+    #Topological Measures of the User Projection
+    d = degree_distribution_networkx(ProjGraph)
+    b, c, e = topological_measures_snap(SnapProjGraph)
+    return
+
+def convert_networkx_to_snap(G):
+    SG = snap.TUNGraph.New()
+    for u in list(G.nodes):
+        SG.AddNode(int(u))
+    for (node1,node2,data) in G.edges(data=True):
+        SG.AddEdge(int(node1), int(node2))
+    return SG
+
 def degree_distribution_networkx(G):
-    degree_freq = dict(G.degree()).values()
+    deg = list(G.degree())
+    deg.sort(key=lambda x: x[0])
+    degree_freq = dict(deg).values()
     degrees = range(0, len(degree_freq))
     avg_deg = sum(degree_freq) / G.number_of_nodes()
     print("Average Degree = {0}".format(avg_deg))
@@ -103,11 +86,12 @@ def degree_distribution_networkx(G):
     plt.legend(labels=['Probability Density Function','Degree Probability Density'])
     plt.grid()
     plt.savefig("Degree.png")
-    return
+    d = [x[1] for x in deg]
+    return d
 
 def topological_measures_snap(G1):
     #Graph Information
-    snap.PrintInfo(G1, "QA Stats", "qa-info2.txt", False)
+    snap.PrintInfo(G1, "QA Stats", "qa-info.txt", False)
 
     #Diameter
     diam = G1.GetBfsFullDiam(10, False)
@@ -149,7 +133,7 @@ def topological_measures_snap(G1):
     avg_eig = np.mean(e)
     print("Average Eigenvector = {0}".format(avg_eig))
     plot_graphics(e, 'purple', 'magenta', 'Eigenvector')
-    return
+    return  b, c, e
 
 def netinf_results():
     G = snap.TUNGraph.New() #Graph with snap library
@@ -176,8 +160,9 @@ def netinf_results():
     print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
 
     #Study of topological measures
-    degree_distribution_networkx(G2)
-    topological_measures_snap(G)
+    d = degree_distribution_networkx(G2)
+    b, c, e = topological_measures_snap(G)
+    generate_user_properties_dataset(M, d, b, c, e)
     return
 
 movielens_graph()
