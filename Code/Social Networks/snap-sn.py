@@ -55,8 +55,8 @@ def movielens_graph():
     SnapProjGraph = convert_networkx_to_snap(ProjGraph) #convert networkx graph to snap graph
 
     #Topological Measures of the User Projection
-    d = degree_distribution_networkx(ProjGraph)
-    b, c, e = topological_measures_snap(SnapProjGraph)
+    deg = degree_distribution_networkx(ProjGraph)
+    bet, cen, eig = topological_measures_snap(SnapProjGraph)
     return
 
 def convert_networkx_to_snap(G):
@@ -112,7 +112,7 @@ def topological_measures_snap(G1):
     nodes, edges = G1.GetBetweennessCentr(1.0)
     b = []
     for u in nodes:
-        b.append(nodes[u])
+        b.append(nodes[u]) #normalized betweenness /((n-1)*(n-2))
     avg_bet = np.mean(b)
     print("Average Betweenness = {0}".format(avg_bet))
     plot_graphics(b, 'darkgreen', 'green', 'Betweenness')
@@ -167,9 +167,9 @@ def netinf_results():
     print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
 
     #Study of topological measures
-    d = degree_distribution_networkx(G2)
-    b, c, e = topological_measures_snap(G)
-    generate_user_properties_dataset("user_topologycal_properties6.csv", M, d, b, c, e)
+    deg = degree_distribution_networkx(G2)
+    bet, cen, eig = topological_measures_snap(G)
+    generate_user_properties_dataset("user_topologycal_properties6.csv", M, deg, bet, cen, eig)
     return
 
 #movielens_graph()
