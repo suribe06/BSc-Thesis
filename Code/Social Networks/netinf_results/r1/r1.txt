@@ -1,0 +1,9 @@
+G: Nodes=671, Edges=9664
+G2: Nodes=671, Edges=9664
+Average Degree = 28.804769001490314
+Diameter: 8
+Density: 4.299219253953778
+Average Clustering Coefficient: 0.6211600724627455
+Average Betweenness = 825.3830104321918
+Average Closeness = 0.3033182298943235
+Average Eigenvector = 0.025570608626376452

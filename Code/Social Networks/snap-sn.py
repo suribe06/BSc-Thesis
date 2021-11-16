@@ -9,9 +9,9 @@ import numpy as np
 import snap
 import csv
 
-def generate_user_properties_dataset(M, m1, m2, m3, m4):
+def generate_user_properties_dataset(name, M, m1, m2, m3, m4):
     fields = ["UserId", "degree", "betweenness", "closeness", "eigenvector"]
-    filename = "user_topologycal_properties.csv"
+    filename = name
     rows = []
     for i in range(M):
     	row = [i+1, m1[i], m2[i], m3[i], m4[i]]
@@ -81,6 +81,7 @@ def degree_distribution_networkx(G):
     plt.clf()
     sns.distplot(list(degree_freq), bins=b, hist=True, kde=True, color='darkblue', kde_kws={'linewidth': 3})
     plt.yscale('log')
+    plt.xscale('log')
     plt.ylim(10**-3, 10**-1)
     plt.xlabel("Degree")
     plt.legend(labels=['Probability Density Function','Degree Probability Density'])
@@ -136,13 +137,19 @@ def topological_measures_snap(G1):
     return  b, c, e
 
 def netinf_results():
+    #Inverse mapper for user nodes
+    df = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
+    M = df['UserId'].nunique()
+    N = df['ItemId'].nunique()
+    user_inv_mapper = dict(zip(list(range(N,N+M)), np.unique(df["UserId"])))
+
     G = snap.TUNGraph.New() #Graph with snap library
     G2 = nx.Graph() #Graph with networkx library
     #Nodes
     line = stdin.readline().strip()
     while len(line) != 0:
         x = line.split(",")
-        u = int(x[0])
+        u = int(user_inv_mapper[int(x[0])])
         G.AddNode(u)
         G2.add_node(u)
         line = stdin.readline().strip()
@@ -150,7 +157,7 @@ def netinf_results():
     line = stdin.readline().strip()
     while len(line) != 0:
         x = line.split(",")
-        u, v = int(x[0]), int(x[1])
+        u, v = int(user_inv_mapper[int(x[0])]), int(user_inv_mapper[int(x[1])])
         G.AddEdge(u,v)
         G2.add_edge(u, v)
         line = stdin.readline().strip()
@@ -162,8 +169,8 @@ def netinf_results():
     #Study of topological measures
     d = degree_distribution_networkx(G2)
     b, c, e = topological_measures_snap(G)
-    generate_user_properties_dataset(M, d, b, c, e)
+    generate_user_properties_dataset("user_topologycal_properties6.csv", M, d, b, c, e)
     return
 
-movielens_graph()
-#netinf_results()
+#movielens_graph()
+netinf_results()

@@ -4,10 +4,10 @@ import datetime
 import itertools
 
 movie_data = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2, 3])
-M = movie_data['user_id'].nunique()
-N = movie_data['item_id'].nunique()
-movie_mapper = dict(zip(np.unique(movie_data["item_id"]), list(range(0,N)))) #Nodes 0 to N-1 are movies
-user_mapper = dict(zip(np.unique(movie_data["user_id"]), list(range(N,N+M))))#Nodes N to M-1 are users
+M = movie_data['UserId'].nunique()
+N = movie_data['ItemId'].nunique()
+movie_mapper = dict(zip(np.unique(movie_data["ItemId"]), list(range(0,N)))) #Nodes 0 to N-1 are movies
+user_mapper = dict(zip(np.unique(movie_data["UserId"]), list(range(N,N+M))))#Nodes N to M-1 are users
 
 for m in list(movie_mapper.values()):
     print("{0},{1}".format(m,m))
@@ -18,8 +18,8 @@ cascades = dict((m, []) for m in list(movie_mapper.values()))
 
 for idx, row in movie_data.iterrows():
     data = row.to_dict()
-    m = movie_mapper[data['item_id']]
-    u = user_mapper[data['user_id']]
+    m = movie_mapper[data['ItemId']]
+    u = user_mapper[data['UserId']]
     t = datetime.datetime.fromtimestamp(data['timestamp'])
     cascades[m].append([u, t])
 

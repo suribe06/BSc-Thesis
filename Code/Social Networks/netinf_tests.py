@@ -1,10 +1,10 @@
 import os
 
 cascades = "movielens-cascades2.txt"
-name_output = "movielens2"
-edges = 205412
-model = 0 #0:exponential, 1:powerlaw, 2:rayleigh
-expo = -3
+name_output = "movielens-inferred-network"
+max_iter = 20000
+model = 2 #0:exponential, 1:powerlaw, 2:rayleigh
+expo = -12
 alpha = 1*10**(expo) #default:1
 
 #Clean previous executions
@@ -12,9 +12,6 @@ alpha = 1*10**(expo) #default:1
 os.system("rm {0}.txt".format(name_output))
 os.system("rm {0}-edge.info".format(name_output))
 
-#Build netinf algorithm
-#os.system("make all")
-
 #Execute netinf algorithm
-command = "./netinf -i:{0} -o:{1} -m:{2} -e:{3} -a:{4}".format(cascades, name_output, str(model), str(edges), str(alpha))
+command = "./netinf -i:{0} -o:{1} -m:{2} -e:{3} -a:{4}".format(cascades, name_output, str(model), str(max_iter), str(alpha))
 os.system(command)
