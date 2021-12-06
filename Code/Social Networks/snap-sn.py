@@ -9,12 +9,12 @@ import numpy as np
 import snap
 import csv
 
-def generate_user_properties_dataset(name, M, m1, m2, m3, m4):
-    fields = ["UserId", "degree", "betweenness", "closeness", "eigenvector"]
+def generate_user_properties_dataset(name, M, m1, m2, m3, m4, m5):
+    fields = ["UserId", "degree", "betweenness", "closeness", "eigenvector", "community"]
     filename = name
     rows = []
     for i in range(M):
-    	row = [i+1, m1[i], m2[i], m3[i], m4[i]]
+    	row = [i+1, m1[i], m2[i], m3[i], m4[i], m5[i]]
     	rows.append(row)
     with open(filename, 'w') as csvfile:
     	csvwriter = csv.writer(csvfile)
@@ -56,7 +56,7 @@ def movielens_graph():
 
     #Topological Measures of the User Projection
     deg = degree_distribution_networkx(ProjGraph)
-    bet, cen, eig = topological_measures_snap(SnapProjGraph)
+    bet, cen, eig = graph_measures_snap(SnapProjGraph)
     return
 
 def convert_networkx_to_snap(G):
@@ -90,7 +90,7 @@ def degree_distribution_networkx(G):
     d = [x[1] for x in deg]
     return d
 
-def topological_measures_snap(G1):
+def graph_measures_snap(G1):
     #Graph Information
     snap.PrintInfo(G1, "QA Stats", "qa-info.txt", False)
 
@@ -134,7 +134,19 @@ def topological_measures_snap(G1):
     avg_eig = np.mean(e)
     print("Average Eigenvector = {0}".format(avg_eig))
     plot_graphics(e, 'purple', 'magenta', 'Eigenvector')
-    return  b, c, e
+
+    #Community Detection (Clauset-Newman-Moore algorithm)
+    communities = dict((u, None) for u in range(1,n+1))
+    modularity, CmtyV = G1.CommunityCNM()
+    cont = 1
+    for Cmty in CmtyV:
+        for NI in Cmty:
+            communities[NI] = cont
+        cont += 1
+    print("Network Modularity = {0}".format(modularity))
+    cd = list(communities.values())
+
+    return  b, c, e, cd
 
 def netinf_results():
     #Inverse mapper for user nodes
@@ -162,14 +174,10 @@ def netinf_results():
         G2.add_edge(u, v)
         line = stdin.readline().strip()
 
-    #Number of nodes and edges in G
-    print("G: Nodes={0}, Edges={1}".format(G.GetNodes(), G.GetEdges()))
-    print("G2: Nodes={0}, Edges={1}".format(G2.number_of_nodes(), G2.number_of_edges()))
-
     #Study of topological measures
     deg = degree_distribution_networkx(G2)
-    bet, cen, eig = topological_measures_snap(G)
-    generate_user_properties_dataset("user_topologycal_properties6.csv", M, deg, bet, cen, eig)
+    bet, cen, eig, com_det = graph_measures_snap(G)
+    generate_user_properties_dataset("user_topologycal_properties6.csv", M, deg, bet, cen, eig, com_det)
     return
 
 #movielens_graph()
