@@ -5,4 +5,8 @@ Average Clustering Coefficient: 0.6187603735184161
 Average Betweenness = 341.8286140089418
 Average Closeness = 0.2712983384266753
 Average Eigenvector = 0.02400520635204976
+Average Farness = 4.800599710125624
+Average Eccentricity = 4.65424739195231
+Average Authority Score = 0.024005165050975486
+Average Hub Score = 0.024005164961553044
 Network Modularity = 0.5896089254782908

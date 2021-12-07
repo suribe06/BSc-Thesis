@@ -9,12 +9,12 @@ import numpy as np
 import snap
 import csv
 
-def generate_user_properties_dataset(name, M, m1, m2, m3, m4, m5):
-    fields = ["UserId", "degree", "betweenness", "closeness", "eigenvector", "community"]
+def generate_user_properties_dataset(name, M, m1, m2, m3, m4, m5, m6, m7, m8, m9):
+    fields = ["UserId", "degree", "betweenness", "closeness", "eigenvector", "community", "eccentricity", "authority", "hub", "farness"]
     filename = name
     rows = []
     for i in range(M):
-    	row = [i+1, m1[i], m2[i], m3[i], m4[i], m5[i]]
+    	row = [i+1, m1[i], m2[i], m3[i], m4[i], m5[i], m6[i], m7[i], m8[i], m9[i]]
     	rows.append(row)
     with open(filename, 'w') as csvfile:
     	csvwriter = csv.writer(csvfile)
@@ -115,7 +115,7 @@ def graph_measures_snap(G1):
         b.append(nodes[u]) #normalized betweenness /((n-1)*(n-2))
     avg_bet = np.mean(b)
     print("Average Betweenness = {0}".format(avg_bet))
-    plot_graphics(b, 'darkgreen', 'green', 'Betweenness')
+    #plot_graphics(b, 'darkgreen', 'green', 'Betweenness')
 
     #Closeness
     c = []
@@ -124,7 +124,7 @@ def graph_measures_snap(G1):
         c.append(CloseCentr)
     avg_clo = np.mean(c)
     print("Average Closeness = {0}".format(avg_clo))
-    plot_graphics(c, 'firebrick', 'red', 'Closeness')
+    #plot_graphics(c, 'firebrick', 'red', 'Closeness')
 
     #Eigenvector
     e = []
@@ -133,7 +133,35 @@ def graph_measures_snap(G1):
         e.append(NIdEigenH[NI.GetId()])
     avg_eig = np.mean(e)
     print("Average Eigenvector = {0}".format(avg_eig))
-    plot_graphics(e, 'purple', 'magenta', 'Eigenvector')
+    #plot_graphics(e, 'purple', 'magenta', 'Eigenvector')
+
+    #Farness
+    f = []
+    for NI in G1.Nodes():
+        FarCentr = G1.GetFarnessCentr(NI.GetId())
+        f.append(FarCentr)
+    avg_far = np.mean(f)
+    print("Average Farness = {0}".format(avg_far))
+
+    #Node Eccentricity
+    ecc = []
+    for NI in G1.Nodes():
+        ecc.append(G1.GetNodeEcc(NI.GetId(), False))
+    avg_ecc = np.mean(ecc)
+    print("Average Eccentricity = {0}".format(avg_ecc))
+
+    #Hubs and Authorities score
+    auth_score =[]
+    hub_score = []
+    NIdHubH, NIdAuthH = G1.GetHits()
+    for item in NIdHubH:
+        hub_score.append(NIdHubH[item])
+    for item in NIdAuthH:
+        auth_score.append(NIdAuthH[item])
+    avg_auth = np.mean(auth_score)
+    avg_hub = np.mean(hub_score)
+    print("Average Authority Score = {0}".format(avg_auth))
+    print("Average Hub Score = {0}".format(avg_hub))
 
     #Community Detection (Clauset-Newman-Moore algorithm)
     communities = dict((u, None) for u in range(1,n+1))
@@ -146,7 +174,7 @@ def graph_measures_snap(G1):
     print("Network Modularity = {0}".format(modularity))
     cd = list(communities.values())
 
-    return  b, c, e, cd
+    return  b, c, e, cd, ecc, auth_score, hub_score, f
 
 def netinf_results():
     #Inverse mapper for user nodes
@@ -176,8 +204,8 @@ def netinf_results():
 
     #Study of topological measures
     deg = degree_distribution_networkx(G2)
-    bet, cen, eig, com_det = graph_measures_snap(G)
-    generate_user_properties_dataset("user_topologycal_properties6.csv", M, deg, bet, cen, eig, com_det)
+    bet, cen, eig, com_det, ecc, auth_score, hub_score, far = graph_measures_snap(G)
+    generate_user_properties_dataset("user_topologycal_properties6.csv", M, deg, bet, cen, eig, com_det, ecc, auth_score, hub_score, far)
     return
 
 #movielens_graph()
