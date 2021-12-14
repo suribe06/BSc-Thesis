@@ -1,0 +1,18 @@
+QA Stats:
+  Nodes:                    671
+  Edges:                    12987
+  Zero Deg Nodes:           0
+  Zero InDeg Nodes:         0
+  Zero OutDeg Nodes:        0
+  NonZero In-Out Deg Nodes: 671
+  Unique directed edges:    25974
+  Unique undirected edges:  12987
+  Self Edges:               0
+  BiDir Edges:              25974
+  Closed triangles:         108888
+  Open triangles:           493177
+  Frac. of closed triads:   0,180858
+  Connected component size: 1,000000
+  Strong conn. comp. size:  1,000000
+  Approx. full diameter:    6
+  90% effective diameter:  3,947905

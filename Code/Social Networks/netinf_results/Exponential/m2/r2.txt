@@ -1,0 +1,12 @@
+Average Degree = 18.882265275707898
+Diameter: 8
+Density: 2.818248548613119
+Average Clustering Coefficient: 0.6111556407676817
+Average Betweenness = 355.41430700447097
+Average Closeness = 0.2656886241850004
+Average Eigenvector = 0.023713782998798314
+Average Farness = 4.917770857163644
+Average Eccentricity = 5.472429210134128
+Average Authority Score = 0.02371373759772277
+Average Hub Score = 0.02371373753619171
+Network Modularity = 0.5855821724312572
