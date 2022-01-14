@@ -5,10 +5,9 @@ import matplotlib.pyplot as plt
 from surprise import Reader, Dataset, SVD
 
 df_ratings = pd.read_csv('ratings_small.csv', usecols=[0, 1, 2])
-
-print("Number of rows {0} in ratings".format(df_ratings.shape[0]))
-user_count = df_ratings['user_id'].nunique()
-movie_count = df_movies["item_id"].nunique()
+print("Number of ratings: {0}".format(df_ratings.shape[0]))
+user_count = df_ratings['UserId'].nunique()
+movie_count = df_ratings["ItemId"].nunique()
 print("Number of users: {0}".format(user_count))
 print("Number of movies: {0}".format(movie_count))
 
@@ -20,7 +19,7 @@ print(df_ratings.describe())
 #plt.boxplot(df_ratings['rating'])
 #plt.show()
 
-ratings_list = df_ratings['rating'].tolist()
+ratings_list = df_ratings['Rating'].tolist()
 d = 1/2
 left_of_first_bin = min(ratings_list) - d/2
 right_of_last_bin = max(ratings_list) + d/2
@@ -34,7 +33,7 @@ plt.grid()
 plt.show()
 
 #Distribution of ratings
-p = df_ratings.groupby('rating')['rating'].agg(['count'])
+p = df_ratings.groupby('Rating')['Rating'].agg(['count'])
 ratings = []
 for i in np.arange(0.5, 5.5, 0.5):
     ratings.append(str(i))
@@ -46,4 +45,5 @@ plt.clf()
 plt.bar(ratings, rating_percentage, color="cyan")
 plt.xlabel('Rating')
 plt.ylabel('Porcentaje Total por Rating')
+plt.grid()
 plt.show()
