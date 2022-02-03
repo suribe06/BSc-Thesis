@@ -78,13 +78,7 @@ def modelo3():
         RETURN u1, u2
     ''')
     return
-
-def modelo4():
-    """
-    Criterio de conexion: 2 usuarios estan conectados si calificaron una pelicula dentro de un rango de fecha
-    """
-    return
-
+    
 #Funcion para deshacer los modelos
 def reset_graph():
     graph.run('''
