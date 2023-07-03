@@ -1,7 +1,5 @@
 from networkx.algorithms import bipartite
 import matplotlib.pyplot as plt
-from matplotlib import pylab
-from sys import stdin
 import seaborn as sns
 import networkx as nx
 import pandas as pd
@@ -14,12 +12,12 @@ def generate_user_properties_dataset(name, M, m1, m2, m3, m4, m5, m6, m7, m8, m9
     filename = name
     rows = []
     for i in range(M):
-    	row = [i+1, m1[i], m2[i], m3[i], m4[i], m5[i], m6[i], m7[i], m8[i], m9[i]]
-    	rows.append(row)
+        row = [i+1, m1[i], m2[i], m3[i], m4[i], m5[i], m6[i], m7[i], m8[i], m9[i]]
+        rows.append(row)
     with open(filename, 'w') as csvfile:
-    	csvwriter = csv.writer(csvfile)
-    	csvwriter.writerow(fields)
-    	csvwriter.writerows(rows)
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(fields)
+        csvwriter.writerows(rows)
     return
 
 def plot_graphics(data, col1, col2, name):
