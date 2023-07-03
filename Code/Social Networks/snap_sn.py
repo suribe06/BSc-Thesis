@@ -34,7 +34,7 @@ def movielens_graph():
     M = df['UserId'].nunique()
     N = df['ItemId'].nunique()
     movie_mapper = dict(zip(np.unique(df["ItemId"]), list(range(0,N)))) #Nodes 0 to N-1 are movies
-    user_mapper = dict(zip(np.unique(df["UserId"]), list(range(N,N+M))))#Nodes N to M-1 are users
+    user_mapper = dict(zip(np.unique(df["UserId"]), list(range(N,N+M))))#Nodes N to N+M-1 are users
     movie_inv_mapper = dict(zip(list(range(0,N)), np.unique(df["ItemId"])))
     user_inv_mapper = dict(zip(list(range(N,N+M)), np.unique(df["UserId"])))
 
